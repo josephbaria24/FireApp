@@ -769,6 +769,90 @@
 
   // Chart with HTML Legends
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  var bubbleChart = new Chart(document.getElementById("bubbleChart").getContext("2d"), {
+    type: 'bubble',
+    data: {
+        datasets: [{
+            label: 'Students per Program',
+            data: [],
+            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          
+            y: {
+                title: {
+                    display: true,
+                    text: 'Number of Students'
+                }
+            }
+        }
+    }
+});
+
+
+// Fetch data from the Django backend
+fetch("/students_per_program/")
+    .then(response => response.json())
+    .then(data => {
+        // Extract data from the response
+        const labels = data.labels;
+        const counts = data.counts;
+        console.log(data);
+
+        // Update the chart data
+        bubbleChart.data.datasets[0].data = labels.map((label, index) => ({
+            x: index, // Assigning index as x-coordinate
+            y: counts[index],
+            r: counts[index] , // Adjust scale factor as needed
+        }));
+
+        // Update the chart
+        bubbleChart.update();
+    })
+    .catch(error => console.error('Error fetching data:', error));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   var gradientStroke = htmlLegendsChart.createLinearGradient(500, 0, 100, 0);
   gradientStroke.addColorStop(0, "#177dff");
   gradientStroke.addColorStop(1, "#80b6f4");
