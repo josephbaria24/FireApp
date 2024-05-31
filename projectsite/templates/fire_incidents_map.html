@@ -58,15 +58,8 @@
     window.location.href = '/fire-incidents-map/?city=' + city;
 
     // Fetch average latitude and longitude for the selected city
-    fetch('/fire-incidents-map/location/?city=' + city)
-      .then(response => response.json())
-      .then(data => {
-        var averageLatitude = data.latitude;
-        var averageLongitude = data.longitude;
 
-        // Set the map view based on the average location and adjust zoom level
-        setMapView(averageLatitude, averageLongitude, 13);
-      });
+      setMapView(averageLatitude, averageLongitude, 13);
   }
 
   var map = L.map('map');
@@ -134,6 +127,58 @@
 {% endblock %}
 
 
+
+
+
+
+
+
+
+
+
+
+
+fetch('/fire-incidents-map/?city=' + selectedCity)
+.then(response => response.json())
+.then(data => {
+  // Clear existing markers from the map before adding new ones
+  incidentMarkers.forEach(marker => {
+    map.removeLayer(marker);
+  });
+  
+
+  // Loop through the filtered data and create new markers
+  data.forEach(function(data) {
+    var latitude = parseFloat(data.latitude);
+    var longitude = parseFloat(data.longitude);
+
+    var marker = L.marker([latitude, longitude], { icon: incidentIcon }).addTo(map);
+
+    var popupContent = data.address;
+    var popup = L.popup().setContent(popupContent);
+
+    marker.bindPopup(popupContent);
+
+    // Bind mouseover and mouseout events to the marker
+    marker.on('mouseover', function(e) {
+      this.openPopup();
+    });
+
+    marker.on('mouseout', function(e) {
+      this.closePopup();
+    });
+
+    // Add the marker to the incidentMarkers array
+    incidentMarkers.push(marker);
+  }); 
+  document.getElementById('city-select').addEventListener('change', function() {
+    var selectedCity = this.value;
+
+
+      
+      .catch(error => console.error('Error fetching data:', error));
+  });
+})
 
 
 
