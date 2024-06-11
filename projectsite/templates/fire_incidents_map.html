@@ -59,7 +59,7 @@
 
     // Fetch average latitude and longitude for the selected city
 
-      setMapView(averageLatitude, averageLongitude, 13);
+      setMapView(averageLatitude, averageLongitude, 5);
   }
 
   var map = L.map('map');
@@ -68,11 +68,10 @@
     iconSize: [50, 50], // Adjust the size as needed
   });
   function setMapView(latitude, longitude, zoom) {
-  // Use the average latitude and longitude instead of fixed values
   map.setView([latitude, longitude], zoom);
 }
 
-  setMapView(9.81644, 118.72239, 12);
+  setMapView(9.81644, 118.72239, 5);
 
 
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -125,6 +124,105 @@
 </script>
 
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Function to load markers based on city
+function loadMarkers(city) {
+  // Change the URL to include the selected city
+  window.location.href = '/fire-incidents-map/?city=' + city;
+
+  // Fetch average latitude and longitude for the selected city
+
+    setMapView(averageLatitude, averageLongitude, 5);
+}
+
+var map = L.map('map');
+var incidentIcon = L.icon({
+  iconUrl: '../static/img/flame.png', // Path to your incident marker icon
+  iconSize: [50, 50], // Adjust the size as needed
+});
+function setMapView(latitude, longitude, zoom) {
+map.setView([latitude, longitude], zoom);
+}
+
+setMapView(9.81644, 118.72239, 5);
+
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// Create an array to hold all the incident markers
+var incidentMarkers = [];
+
+// Define the incident marker data
+var incidentMarkerData = {{ incident_data|safe }};
+
+incidentMarkerData.forEach(function(data) {
+  var latitude = parseFloat(data.latitude);
+  var longitude = parseFloat(data.longitude);
+
+  var marker = L.marker([latitude, longitude], { icon: incidentIcon }).addTo(map);
+
+  // Create a popup and set its content
+  var popupContent = data.address;
+  var popup = L.popup().setContent(popupContent);
+  
+  marker.bindPopup(popupContent);
+
+  // Bind mouseover and mouseout events to the marker
+  marker.on('mouseover', function(e) {
+    this.openPopup();
+  });
+
+  marker.on('mouseout', function(e) {
+    this.closePopup();
+  });
+
+  // Add the marker to the incidentMarkers array
+  incidentMarkers.push(marker);
+});
+
+
+// Event listener for form submission
+
+document.getElementById('city-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+  var selectedCity = document.getElementById('city-select').value;
+  if (selectedCity) {
+    loadMarkers(selectedCity);
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

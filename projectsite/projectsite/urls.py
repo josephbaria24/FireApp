@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from fire.views import HomePageView, ChartView,PieCountbySeverity, LineCountbyMonth, MultilineIncidentTop3Country, multipleBarbySeverity, FireStationListView, FireStationCreateView, FireStationUpdateView, FireStationDeleteView, IncidentListView, IncidentCreateView, IncidentUpdateView, IncidentDeleteView, LocationListView, LocationCreateView, LocationUpdateView, LocationDeleteView, FireTruckListView, FireTruckCreateView, FireTruckUpdateView, FireTruckDeleteView, FirefightersListView, FirefightersCreateView, FirefightersUpdateView, FirefightersDeleteView
+from fire.views import HomePageView, city_data, ChartView,PieCountbySeverity, LineCountbyMonth, MultilineIncidentTop3Country, multipleBarbySeverity, FireStationListView, FireStationCreateView, FireStationUpdateView, FireStationDeleteView, IncidentListView, IncidentCreateView, IncidentUpdateView, IncidentDeleteView, LocationListView, LocationCreateView, LocationUpdateView, LocationDeleteView, FireTruckListView, FireTruckCreateView, FireTruckUpdateView, FireTruckDeleteView, FirefightersListView, FirefightersCreateView, FirefightersUpdateView, FirefightersDeleteView
 
 from fire import views
 
@@ -16,6 +16,7 @@ urlpatterns = [
     path('stations', views.map_station, name='map-station'),
     path('fire-incidents-map/', views.fire_incidents_map, name='fire-incidents-map'),
     path('fire-stations/', FireStationListView.as_view(), name='fire_station_list'),
+    path('city_data/', city_data, name='city_data'),
     path('fire-stations/new/', FireStationCreateView.as_view(), name='fire_station_create'),
     path('fire-stations/<int:pk>/edit/', FireStationUpdateView.as_view(), name='fire_station_update'),
     path('fire-stations/<int:pk>/delete/', FireStationDeleteView.as_view(), name='fire_station_delete'),
