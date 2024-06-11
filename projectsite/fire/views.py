@@ -1,15 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic.list import ListView
-from fire.models import Locations, Incident, FireStation, FireTruck
+from .models import Locations, Incident, FireStation, FireTruck, Firefighters, WeatherConditions
 from django.db import connection
+from collections import defaultdict
 from django.http import JsonResponse
 from django.db.models.functions import ExtractMonth
 from django.db.models import Q
 from django.db.models import Count
+import calendar
 from datetime import datetime
 from django.urls import reverse_lazy
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .forms import FireStationForm, IncidentForm, LocationForm, FireTruckForm
+from .forms import FireStationForm, IncidentForm, LocationForm, FireTruckForm, FirefightersForm, WeatherConditionsForm
 
 
 class HomePageView(ListView):
@@ -138,41 +140,35 @@ def MultilineIncidentTop3Country(request):
 
     return JsonResponse(result)
 
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Incident
+from collections import defaultdict
+import calendar
+
 def multipleBarbySeverity(request):
-    query = '''
-    SELECT 
-        fi.severity_level,
-        strftime('%m', fi.date_time) AS month,
-        COUNT(fi.id) AS incident_count
-    FROM 
-        fire_incident fi
-    GROUP BY fi.severity_level, month
-    '''
+    incidents = Incident.objects.all()
+    result = defaultdict(lambda: defaultdict(int))
 
-    with connection.cursor() as cursor:
-        cursor.execute(query)
-        rows = cursor.fetchall()
+    for incident in incidents:
+        month = incident.date_time.month if incident.date_time else None
+        severity = incident.severity_level
+        
+        if month is not None:
+            result[severity][month] += 1
 
-    result = {}
-    months = set(str(i).zfill(2) for i in range(1, 13))
+    # Convert defaultdict to regular dict for JSON serialization
+    result = {k: dict(v) for k, v in result.items()}
 
-    for row in rows:
-        level = str(row[0])  # Ensure the severity level is a string
-        month = row[1]
-        total_incidents = row[2]
-
-        if level not in result:
-            result[level] = {month: 0 for month in months}
-
-        result[level][month] = total_incidents
-
-    # Sort months within each severity level
+    # Filter out None values and sort the results
     for level in result:
+        result[level] = {k: v for k, v in result[level].items() if k is not None}
         result[level] = dict(sorted(result[level].items()))
+    
+    # Convert month numbers to month names
+    result_with_month_names = {severity: {calendar.month_abbr[month]: count for month, count in months.items()} for severity, months in result.items()}
 
-    return JsonResponse(result)
-
-
+    return JsonResponse(result_with_month_names)
 
 
 def map_station(request):
@@ -458,3 +454,94 @@ class FireTruckDeleteView(DeleteView):
     model = FireTruck
     template_name = 'firetruck_confirm_delete.html'
     success_url = reverse_lazy('firetruck_list')
+
+
+
+
+
+
+
+
+class FirefightersListView(ListView):
+    model = Firefighters
+    template_name = 'firefighters_list.html'
+    context_object_name = 'firefighters'
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(Q(name__icontains=query) | Q(rank__icontains=query) | Q(experience_level__icontains=query) | Q(station__icontains=query))
+        return queryset.order_by('id')  
+
+class FirefightersCreateView(CreateView):
+    model = Firefighters
+    form_class = FirefightersForm
+    template_name = 'firefighters_form.html'
+    success_url = reverse_lazy('firefighters_list')
+
+class FirefightersUpdateView(UpdateView):
+    model = Firefighters
+    form_class = FirefightersForm
+    template_name = 'firefighters_form.html'
+    success_url = reverse_lazy('firefighters_list')
+
+class FirefightersDeleteView(DeleteView):
+    model = Firefighters
+    template_name = 'firefighters_confirm_delete.html'
+    success_url = reverse_lazy('firefighters_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['firefighter'] = self.object
+        return context
+    
+
+
+
+def weatherconditions_list(request):
+    query = request.GET.get('q')
+    if query:
+        weatherconditions = WeatherConditions.objects.filter(
+            Q(incident__description__icontains=query) | 
+            Q(temperature__icontains=query) |
+            Q(humidity__icontains=query) |
+            Q(wind_speed__icontains=query) |
+            Q(weather_description__icontains=query)
+        )
+    else:
+        weatherconditions = WeatherConditions.objects.all()
+    return render(request, 'weatherconditions_list.html', {'weatherconditions': weatherconditions})
+
+def weatherconditions_detail(request, pk):
+    weathercondition = get_object_or_404(WeatherConditions, pk=pk)
+    return render(request, 'weatherconditions_detail.html', {'weathercondition': weathercondition})
+
+def weatherconditions_create(request):
+    if request.method == 'POST':
+        form = WeatherConditionsForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('weatherconditions_list')
+    else:
+        form = WeatherConditionsForm()
+    return render(request, 'weatherconditions_form.html', {'form': form})
+
+def weatherconditions_update(request, pk):
+    weathercondition = get_object_or_404(WeatherConditions, pk=pk)
+    if request.method == 'POST':
+        form = WeatherConditionsForm(request.POST, instance=weathercondition)
+        if form.is_valid():
+            form.save()
+            return redirect('weatherconditions_list')
+    else:
+        form = WeatherConditionsForm(instance=weathercondition)
+    return render(request, 'weatherconditions_form.html', {'form': form})
+
+def weatherconditions_delete(request, pk):
+    weathercondition = get_object_or_404(WeatherConditions, pk=pk)
+    if request.method == 'POST':
+        weathercondition.delete()
+        return redirect('weatherconditions_list')
+    return render(request, 'weatherconditions_confirm_delete.html', {'weathercondition': weathercondition})

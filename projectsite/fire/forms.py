@@ -1,5 +1,5 @@
 from django import forms
-from .models import FireStation, Incident, Locations, FireTruck
+from .models import FireStation, Incident, Locations, FireTruck,Firefighters, WeatherConditions
 
 class FireStationForm(forms.ModelForm):
     class Meta:
@@ -28,3 +28,13 @@ class FireTruckForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['station'].queryset = FireStation.objects.all()  # Provide queryset for the station field
+
+class FirefightersForm(forms.ModelForm):
+    class Meta:
+        model = Firefighters
+        fields = ['name', 'rank', 'experience_level', 'station']
+
+class WeatherConditionsForm(forms.ModelForm):
+    class Meta:
+        model = WeatherConditions
+        fields = ['incident', 'temperature', 'humidity', 'wind_speed', 'weather_description']
