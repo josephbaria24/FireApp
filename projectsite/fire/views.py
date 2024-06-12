@@ -454,41 +454,46 @@ class FireTruckDeleteView(DeleteView):
 
 
 
-class FirefightersListView(ListView):
-    model = Firefighters
-    template_name = 'firefighters_list.html'
-    context_object_name = 'firefighters'
-    paginate_by = 10
+def firefighter_list(request):
+    query = request.GET.get('q')
+    if query:
+        firefighters = Firefighters.objects.filter(
+            Q(name__icontains=query) |
+            Q(rank__icontains=query) |
+            Q(experience_level__icontains=query) |
+            Q(station__name__icontains=query)
+        )
+    else:
+        firefighters = Firefighters.objects.all()
+    return render(request, 'firefighter_list.html', {'firefighters': firefighters})
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get('q')
-        if query:
-            queryset = queryset.filter(Q(name__icontains=query) | Q(rank__icontains=query) | Q(experience_level__icontains=query) | Q(station__icontains=query))
-        return queryset.order_by('id')  
+def firefighter_create(request):
+    if request.method == 'POST':
+        form = FirefightersForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('firefighter_list')
+    else:
+        form = FirefightersForm()
+    return render(request, 'firefighter_form.html', {'form': form})
 
-class FirefightersCreateView(CreateView):
-    model = Firefighters
-    form_class = FirefightersForm
-    template_name = 'firefighters_form.html'
-    success_url = reverse_lazy('firefighters_list')
+def firefighter_update(request, pk):
+    firefighter = Firefighters.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = FirefightersForm(request.POST, instance=firefighter)
+        if form.is_valid():
+            form.save()
+            return redirect('firefighter_list')
+    else:
+        form = FirefightersForm(instance=firefighter)
+    return render(request, 'firefighter_form.html', {'form': form})
 
-class FirefightersUpdateView(UpdateView):
-    model = Firefighters
-    form_class = FirefightersForm
-    template_name = 'firefighters_form.html'
-    success_url = reverse_lazy('firefighters_list')
-
-class FirefightersDeleteView(DeleteView):
-    model = Firefighters
-    template_name = 'firefighters_confirm_delete.html'
-    success_url = reverse_lazy('firefighters_list')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['firefighter'] = self.object
-        return context
-    
+def firefighter_delete(request, pk):
+    firefighter = Firefighters.objects.get(pk=pk)
+    if request.method == 'POST':
+        firefighter.delete()
+        return redirect('firefighter_list')
+    return render(request, 'firefighter_confirm_delete.html', {'firefighter': firefighter})
 
 
 

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from fire.views import HomePageView, city_data, ChartView,PieCountbySeverity, LineCountbyMonth, MultilineIncidentTop3Country, multipleBarbySeverity, FireStationListView, FireStationCreateView, FireStationUpdateView, FireStationDeleteView, IncidentListView, IncidentCreateView, IncidentUpdateView, IncidentDeleteView, LocationListView, LocationCreateView, LocationUpdateView, LocationDeleteView, FireTruckListView, FireTruckCreateView, FireTruckUpdateView, FireTruckDeleteView, FirefightersListView, FirefightersCreateView, FirefightersUpdateView, FirefightersDeleteView
+from fire.views import HomePageView, city_data, ChartView,PieCountbySeverity, LineCountbyMonth, MultilineIncidentTop3Country, multipleBarbySeverity, FireStationListView, FireStationCreateView, FireStationUpdateView, FireStationDeleteView, IncidentListView, IncidentCreateView, IncidentUpdateView, IncidentDeleteView, LocationListView, LocationCreateView, LocationUpdateView, LocationDeleteView, FireTruckListView, FireTruckCreateView, FireTruckUpdateView, FireTruckDeleteView, firefighter_list, firefighter_create, firefighter_update, firefighter_delete
 
 from fire import views
 
@@ -32,10 +32,10 @@ urlpatterns = [
     path('firetrucks/create/', FireTruckCreateView.as_view(), name='firetruck_create'),
     path('firetrucks/<int:pk>/update/', FireTruckUpdateView.as_view(), name='firetruck_update'),
     path('firetrucks/<int:pk>/delete/', FireTruckDeleteView.as_view(), name='firetruck_delete'),
-     path('firefighters/', FirefightersListView.as_view(), name='firefighters_list'),
-    path('firefighters/create/', FirefightersCreateView.as_view(), name='firefighters_create'),
-    path('firefighters/<int:pk>/update/', FirefightersUpdateView.as_view(), name='firefighters_update'),
-    path('firefighters/<int:pk>/delete/', FirefightersDeleteView.as_view(), name='firefighters_delete'),
+     path('firefighters/', views.firefighter_list, name='firefighter_list'),
+    path('firefighters/new/', views.firefighter_create, name='firefighter_create'),
+    path('firefighters/<int:pk>/edit/', views.firefighter_update, name='firefighter_update'),
+    path('firefighters/<int:pk>/delete/', views.firefighter_delete, name='firefighter_delete'),
     path('weatherconditions/', views.weatherconditions_list, name='weatherconditions_list'),
     path('weatherconditions/<int:pk>/', views.weatherconditions_detail, name='weatherconditions_detail'),
     path('weatherconditions/create/', views.weatherconditions_create, name='weatherconditions_create'),

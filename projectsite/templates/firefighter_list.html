@@ -7,14 +7,14 @@
         <input type="text" name="q" class="form-control mr-2" placeholder="Search" value="{{ request.GET.q }}">
         <button type="submit" class="btn btn-outline-primary">Search</button>
       </form>
-      <a href="{% url 'firefighters_create' %}" class="btn btn-primary mb-3">Add New Fire Truck</a>
-    <table class="table">
+      <a href="{% url 'firefighter_create' %}" class="btn btn-primary mb-3">Add New Fire Fighter</a>
+      <table class="table">
         <thead>
             <tr>
                 <th>Name</th>
                 <th>Rank</th>
                 <th>Experience Level</th>
-                <th style="width: 300px;">Station</th> <!-- Set width to 100px or adjust as needed -->
+                <th>Station</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -24,10 +24,10 @@
                 <td>{{ firefighter.name }}</td>
                 <td>{{ firefighter.rank }}</td>
                 <td>{{ firefighter.experience_level }}</td>
-                <td>{{ firefighter.station }}</td>
+                <td>{{ firefighter.station.name }}</td>
                 <td>
-                    <a href="{% url 'firefighters_update' firefighter.pk %}" class="btn btn-sm btn-primary" style="max-width: 80px;">Edit</a>
-                    <a href="{% url 'firefighters_delete' firefighter.pk %}" class="btn btn-sm btn-danger" style="max-width: 80px;">Delete</a>
+                    <a href="{% url 'firefighter_update' firefighter.pk %}" class="btn btn-sm btn-primary">Edit</a>
+                    <a href="{% url 'firefighter_delete' firefighter.pk %}" class="btn btn-sm btn-danger">Delete</a>
                 </td>
             </tr>
             {% endfor %}
