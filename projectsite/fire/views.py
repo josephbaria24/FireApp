@@ -17,7 +17,7 @@ from .forms import FireStationForm, IncidentForm, LocationForm, FireTruckForm, F
 class HomePageView(ListView):
     model = Locations
     context_object_name = 'home'
-    template_name = "home.html"
+    template_name = "chart.html"
 class ChartView(ListView):
     template_name = 'chart.html'
 
@@ -140,11 +140,6 @@ def MultilineIncidentTop3Country(request):
 
     return JsonResponse(result)
 
-from django.shortcuts import render
-from django.http import JsonResponse
-from .models import Incident
-from collections import defaultdict
-import calendar
 
 def multipleBarbySeverity(request):
     incidents = Incident.objects.all()
@@ -249,28 +244,25 @@ def fire_incidents_map(request):
     return render(request, 'fire_incidents_map.html', context)
 
 def city_data(request):
-    city = request.GET.get('city', '')
-    query = """
-        SELECT AVG(latitude) AS latitude, AVG(longitude) AS longitude,
-        (SELECT COUNT(*) FROM fire_incident WHERE location_id IN
-        (SELECT id FROM fire_locations WHERE city = %s)) AS incident_count
-        FROM fire_locations WHERE city = %s
-    """
-    with connection.cursor() as cursor:
-        cursor.execute(query, [city, city])
-        row = cursor.fetchone()
-        if row:
-            latitude = row[0]
-            longitude = row[1]
-            incident_count = row[2]
-            zoom = 12  # Adjust zoom level based on incident density
-            return JsonResponse({
-                'latitude': latitude,
-                'longitude': longitude,
-                'zoom': zoom
-            })
-        else:
-            return JsonResponse({'error': 'City not found'})
+    city_name = request.GET.get('city')
+    if city_name:
+        # Fetch the city's average latitude and longitude
+        city_locations = Locations.objects.filter(city=city_name)
+        if city_locations.exists():
+            city = city_locations.first()
+            incidents = Incident.objects.filter(location__city=city_name)
+            incident_data = [{
+                'latitude': float(incident.location.latitude),
+                'longitude': float(incident.location.longitude),
+                'address': incident.location.address
+            } for incident in incidents]
+            data = {
+                'latitude': float(city.latitude),
+                'longitude': float(city.longitude),
+                'incidents': incident_data
+            }
+            return JsonResponse(data)
+    return JsonResponse({'error': 'City not found'}, status=404)
         
 def city_incidents(request):
     city = request.GET.get('city', '')
